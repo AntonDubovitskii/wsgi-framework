@@ -4,7 +4,7 @@ from os.path import join
 
 def render(template_name, folder='templates', **kwargs):
     """
-    Функция, создающая шаблон html-страницы.
+    Функция, визуализирующая шаблон html-страницы.
     :param template_name: имя шаблона
     :param folder: директория, в которой находится шаблон
     :param kwargs: параметры
