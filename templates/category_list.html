@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Categories{% endblock %}
+
+{% block style %}
+  {% include "inc-style.html" %}
+{% endblock %}
+
+{% block header %}
+  {% include "inc-header.html" %}
+{% endblock %}
+
+{% block page_content %}
+  <div id="site_content">
+      {% include "inc-sidebar.html" %}
+      <div id="content">
+        <h1>Список категорий языковых курсов</h1>
+        <ul>
+            {% for item in obj_list %}
+            <li>
+                {{item.name}}. <span>Количество курсов: {{item.course_count()}}</span>
+                <a href="/courses-list/?id={{item.id}}">Актуальные программы обучения</a>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <div>
+            <li><a href="/create-category/">Добавить категорию</a></li>
+        </div>
+      </div>
+  </div>
+{% endblock %}
+
+{% block footer %}
+  {% include "inc-footer.html" %}
+{% endblock %}

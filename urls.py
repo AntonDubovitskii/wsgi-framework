@@ -2,7 +2,8 @@ from datetime import date
 
 import requests
 
-from views import index_view, about_view, contacts_view
+from views import index_view, about_view, contacts_view, courses_list_view, category_list_view,\
+    CreateCategory, CreateCourse, copy_course_view
 
 
 def date_front(request: dict):
@@ -30,4 +31,9 @@ routes = {
     '/': index_view,
     '/about/': about_view,
     '/contacts/': contacts_view,
+    '/category-list/': category_list_view,
+    '/courses-list/': courses_list_view,
+    '/create-course/': CreateCourse(),
+    '/create-category/': CreateCategory(),
+    '/copy-course/': copy_course_view
 }
