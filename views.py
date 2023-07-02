@@ -1,11 +1,16 @@
 from anton_framework.templator import render
 from patterns.creational_patterns import Engine, Logger
+from patterns.structural_patterns import app_route, AppRoute, debug_func, DebugClass
 
 site = Engine()
 logger = Logger('main')
 
+routes = {}
 
+
+@AppRoute(routes=routes, url='/create-category/')
 class CreateCategory:
+    @DebugClass(name='CreateCategory')
     def __call__(self, request: dict):
 
         if request['method'] == 'POST':
@@ -32,9 +37,11 @@ class CreateCategory:
                                     exchange_rate=request.get('exchange_rate'))
 
 
+@AppRoute(routes=routes, url='/create-course/')
 class CreateCourse:
     category_id = -1
 
+    @DebugClass(name='CreateCourse')
     def __call__(self, request: dict):
         if request['method'] == 'POST':
             category = None
@@ -68,27 +75,35 @@ class CreateCourse:
                 return '200 OK', 'Отсутствуют программы обучения'
 
 
+@app_route(routes=routes, url='/')
+@debug_func(name='Index')
 def index_view(request: dict):
     return '200 OK', render('index.html', date=request.get('date', None),
                             exchange_rate=request.get('exchange_rate'))
 
 
+@app_route(routes=routes, url='/about/')
+@debug_func(name='About')
 def about_view(request: dict):
     return '200 OK', render('about.html', date=request.get('date', None),
                             exchange_rate=request.get('exchange_rate'))
 
 
+@app_route(routes=routes, url='/contacts/')
+@debug_func(name='Contacts')
 def contacts_view(request: dict):
     return '200 OK', render('contacts.html', date=request.get('date', None),
                             exchange_rate=request.get('exchange_rate'))
 
 
+@app_route(routes=routes, url='/category-list/')
 def category_list_view(request: dict):
     logger.log('Список категорий')
     return '200 OK', render('category_list.html', date=request.get('date', None),
                             exchange_rate=request.get('exchange_rate'), obj_list=site.categories)
 
 
+@app_route(routes=routes, url='/courses-list/')
 def courses_list_view(request: dict):
     logger.log('Список курсов')
     try:
@@ -101,6 +116,7 @@ def courses_list_view(request: dict):
         return '200 OK', 'На данный момент актуальных курсов нет'
 
 
+@app_route(routes=routes, url='/copy-course/')
 def copy_course_view(request: dict):
     request_params = request['request_params']
     category = site.find_category_by_id(int(request['request_params']['id']))
@@ -124,3 +140,6 @@ def copy_course_view(request: dict):
     except KeyError:
         return '200 OK', 'No courses have been added yet'
 
+
+if __name__ == '__main__':
+    print(routes)
