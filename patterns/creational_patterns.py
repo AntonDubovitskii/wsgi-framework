@@ -1,9 +1,12 @@
 from copy import deepcopy
 from quopri import decodestring
 
+from behavioral_patterns import ConsoleWriter, FileWriter, Subject
+
 
 class User:
-    pass
+    def __init__(self, name):
+        self.name = name
 
 
 class Teacher(User):
@@ -11,7 +14,9 @@ class Teacher(User):
 
 
 class Student(User):
-    pass
+    def __init__(self, name):
+        self.courses = []
+        super().__init__(name)
 
 
 class UserFactory:
@@ -21,8 +26,8 @@ class UserFactory:
     }
 
     @classmethod
-    def create(cls, user_type):
-        return cls.types[user_type]()
+    def create(cls, user_type, user_name):
+        return cls.types[user_type](user_name)
 
 
 class CoursePrototype:
@@ -31,12 +36,22 @@ class CoursePrototype:
         return deepcopy(self)
 
 
-class Course(CoursePrototype):
+class Course(CoursePrototype, Subject):
 
     def __init__(self, name, category):
         self.name = name
         self.category = category
         self.category.courses.append(self)
+        self.students = []
+        super().__init__()
+
+    def __getitem__(self, item):
+        return self.students[item]
+
+    def add_student(self, student: Student):
+        self.students.append(student)
+        student.courses.append(self)
+        self.notify()
 
 
 class OnlineCourse(Course):
@@ -87,8 +102,8 @@ class Engine:
         self.categories = []
 
     @staticmethod
-    def create_user(user_type):
-        return UserFactory.create(user_type)
+    def create_user(user_type, user_name):
+        return UserFactory.create(user_type, user_name)
 
     @staticmethod
     def create_category(name, category=None):
@@ -110,6 +125,11 @@ class Engine:
                 return item
         return None
 
+    def get_student(self, name) -> Student:
+        for item in self.students:
+            if item.name == name:
+                return item
+
     @staticmethod
     def decode_value(val):
         val_b = bytes(val.replace('%', '=').replace("+", " "), 'UTF-8')
@@ -117,6 +137,7 @@ class Engine:
         return val_decode_str.decode('UTF-8')
 
 
+# Паттерн - Одиночка
 class SingletonByName(type):
 
     def __init__(cls, name, bases, attrs, **kwargs):
@@ -136,11 +157,15 @@ class SingletonByName(type):
             return cls.__instance[name]
 
 
+# Логгер, реализующий поведенческий паттерн "Стратегия"
 class Logger(metaclass=SingletonByName):
 
-    def __init__(self, name):
+    def __init__(self, name, writer):
         self.name = name
+        self.writer = writer
 
-    @staticmethod
-    def log(text):
-        print('log:  ', text)
+    def log(self, text):
+        text = f'log: {text}'
+        self.writer.write(text)
+
+
