@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Students{% endblock %}
+
+{% block style %}
+  {% include "includes/inc-style.html" %}
+{% endblock %}
+
+{% block header %}
+  {% include "includes/inc-header.html" %}
+{% endblock %}
+
+{% block page_content %}
+    <div id="site_content">
+      {% include "includes/inc-sidebar.html" %}
+        <div>
+            <li>
+                <a href="/create-student/">Добавить нового студента</a>
+            </li>
+            <li>
+                <a href="/add-student/">Записать студента на курс</a>
+            </li>
+        </div>
+        <h1>Список студентов</h1>
+        <div>
+
+            {% for item in obj_list %}
+            <li>
+                {{item.name}}
+                {% for course in item.courses %}
+                    {{course.name}}
+                {% endfor %}
+            </li>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block footer %}
+  {% include "includes/inc-footer.html" %}
+{% endblock %}
