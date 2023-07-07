@@ -1,14 +1,19 @@
 from anton_framework.templator import render
-from behavioral_patterns import ListView, CreateView, BaseSerializer, EmailNotifier, SmsNotifier, FileWriter
-from patterns.creational_patterns import Engine, Logger
+from behavioral_patterns import ListView, CreateView, BaseSerializer, EmailNotifier, SmsNotifier, FileWriter, \
+    DeleteView, ChangeView
+from patterns.creational_patterns import Engine, Logger, MapperRegistry
 from patterns.structural_patterns import app_route, AppRoute, debug_func, DebugClass
+from architectural_patterns import UnitOfWork
 
 site = Engine()
+
+logger = Logger('main', FileWriter())
 
 email_notifier = EmailNotifier()
 sms_notifier = SmsNotifier()
 
-logger = Logger('main', FileWriter())
+UnitOfWork.new_current()
+UnitOfWork.get_current().set_mapper_registry(MapperRegistry)
 
 routes = {}
 
@@ -86,8 +91,11 @@ class CreateCourse:
 
 @AppRoute(routes=routes, url='/student-list/')
 class StudentListView(ListView):
-    queryset = site.students
     template_name = 'student_list.html'
+
+    def get_queryset(self):
+        mapper = MapperRegistry.get_current_mapper('student')
+        return mapper.all()
 
     def get_context_data(self, request):
         context = super().get_context_data(request)
@@ -111,6 +119,55 @@ class AddStudentView(CreateView):
         name = site.decode_value(name)
         new_obj = site.create_user('student', name)
         site.students.append(new_obj)
+        new_obj.mark_new()
+        UnitOfWork.get_current().commit()
+
+
+@AppRoute(routes=routes, url='/delete-student/')
+class DeleteStudentView(DeleteView):
+    template_name = 'delete_student.html'
+    mapper = MapperRegistry.get_current_mapper('student')
+
+    def get_queryset(self, mapper=mapper):
+        return mapper.all()
+
+    def get_context_data(self, request):
+        context = super().get_context_data(request)
+        context['date'] = request.get('date', None)
+        context['exchange_rate'] = request.get('exchange_rate')
+        return context
+
+    def delete_obj(self, data: dict, mapper=mapper):
+        student_id = data['student_id']
+        student_id = site.decode_value(student_id)
+        del_obj = mapper.find_by_id(student_id)
+        del_obj.mark_removed()
+        UnitOfWork.get_current().commit()
+
+
+@AppRoute(routes=routes, url='/change-student/')
+class ChangeStudentView(ChangeView):
+    template_name = 'change_student.html'
+    mapper = MapperRegistry.get_current_mapper('student')
+
+    def get_queryset(self, mapper=mapper):
+        return mapper.all()
+
+    def get_context_data(self, request):
+        context = super().get_context_data(request)
+        context['date'] = request.get('date', None)
+        context['exchange_rate'] = request.get('exchange_rate')
+        return context
+
+    def change_obj(self, data: dict, mapper=mapper):
+        student_id = data['student_id']
+        student_id = site.decode_value(student_id)
+        new_name = data['new_name']
+        new_name = site.decode_value(new_name)
+        change_obj = mapper.find_by_id(student_id)
+        change_obj.name = new_name
+        change_obj.mark_dirty()
+        UnitOfWork.get_current().commit()
 
 
 @AppRoute(routes=routes, url='/add-student/')
