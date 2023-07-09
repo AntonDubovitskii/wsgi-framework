@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Enrollment{% endblock %}
+
+{% block style %}
+  {% include "includes/inc-style.html" %}
+{% endblock %}
+
+{% block header %}
+  {% include "includes/inc-header.html" %}
+{% endblock %}
+
+{% block page_content %}
+<div id="site_content">
+      {% include "includes/inc-sidebar.html" %}
+        <div>
+            <li>
+                <a href="/student-list/">Список студентов</a>
+            </li>
+        </div>
+        <h1>Удаление студента</h1>
+        <form method="post">
+            <select size="3" name="student_id">
+                {% for item in obj_list %}
+                <option value="{{item.id}}">{{item.name}}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Удалить</button>
+        </form>
+</div>
+{% endblock %}
+
+{% block footer %}
+  {% include "includes/inc-footer.html" %}
+{% endblock %}
